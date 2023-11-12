@@ -2,18 +2,17 @@ package com.bachar.customer;
 
 
 import com.bachar.exception.ResourceNotFound;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class CustomerService {
-
-    public CustomerService(CustomerDao customerDao) {
+    private final CustomerDao customerDao;
+    public CustomerService(@Qualifier("jpa") CustomerDao customerDao) {
         this.customerDao = customerDao;
     }
-
-    private final CustomerDao customerDao;
 
 
     public List<Customer> getAllCustomers() {
