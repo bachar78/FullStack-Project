@@ -1,6 +1,7 @@
 package com.bachar.customer;
 
 
+import com.bachar.exception.ResourceNotFound;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +21,6 @@ public class CustomerService {
     }
 
     public Customer getCustomer(Integer customerId) {
-        return customerDao.selectCustomerById(customerId).orElseThrow(()-> new IllegalArgumentException("Customer not found"));
+        return customerDao.selectCustomerById(customerId).orElseThrow(()-> new ResourceNotFound("Customer with id %d is not found".formatted(customerId)));
     }
 }
