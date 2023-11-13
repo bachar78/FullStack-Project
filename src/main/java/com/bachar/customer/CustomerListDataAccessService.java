@@ -4,6 +4,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Repository("list")
@@ -49,8 +50,15 @@ public class CustomerListDataAccessService implements CustomerDao {
     @Override
     public void deleteCustomer(Integer customerId) {
         customers.stream()
-                .filter(c -> c.getId() == customerId)
+                .filter(c -> Objects.equals(c.getId(), customerId))
                 .findFirst()
-                .ifPresent(customer -> customers.remove(customer));
+                .ifPresent(customers::remove);
     }
+
+    @Override
+    public void updateCustomer(Customer update) {
+        customers.add(update);
+    }
+
+
 }

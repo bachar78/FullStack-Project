@@ -12,4 +12,5 @@ public interface CustomerDao {
     boolean existPersonWithId(Integer customerId);
 
     void deleteCustomer(Integer customerId);
+    void updateCustomer(Customer update);
 }
