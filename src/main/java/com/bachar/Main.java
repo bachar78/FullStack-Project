@@ -25,7 +25,7 @@ public class Main {
         return args -> {
             List<Customer> customers = List.of(Customer.builder().name("Alex").email("alex@gmail.com").age(21).build(),
                     Customer.builder().name("Jamila").email("jamila@gmail.com").age(19).build());
-            customerRepository.saveAll(customers);
+//            customerRepository.saveAll(customers);
         };
     }
 
