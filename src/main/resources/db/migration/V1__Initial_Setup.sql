@@ -1,7 +1,6 @@
-
-CREATE TABLE customer(
+CREATE table customer(
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL,
     age INT NOT NULL
 )
