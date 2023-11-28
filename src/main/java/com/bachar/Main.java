@@ -25,12 +25,13 @@ public class Main {
 
     @Bean
     CommandLineRunner runner(CustomerRepository customerRepository) {
-        Faker faker = new Faker();
+        var faker = new Faker();
         Random random = new Random();
         return args -> {
-            List<Customer> customers = List.of(Customer.builder().name(faker.name().name()).email(faker.internet().emailAddress()).age(random.nextInt(16, 90)).build(),
-                    Customer.builder().name(faker.name().name()).email(faker.internet().emailAddress()).age(random.nextInt(16,90)).build());
-            customerRepository.saveAll(customers);
+            var firstName = faker.name().firstName();
+            var lastName = faker.name().lastName();
+            var customer = Customer.builder().name(firstName +" "+ lastName).email(firstName + "." + lastName + "@example.com").age(random.nextInt(16, 90)).build();
+            customerRepository.save(customer);
         };
     }
 
