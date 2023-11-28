@@ -14,8 +14,8 @@ public class CustomerListDataAccessService implements CustomerDao {
 
     static {
         customers = new ArrayList<>();
-        customers.add(Customer.builder().id(1).name("Alex").email("alex@gmail.com").age(21).build());
-        customers.add(Customer.builder().id(2).name("Jamila").email("jamila@gmail.com").age(19).build());
+        customers.add(Customer.builder().id(1L).name("Alex").email("alex@gmail.com").age(21).build());
+        customers.add(Customer.builder().id(2L).name("Jamila").email("jamila@gmail.com").age(19).build());
     }
 
     @Override
