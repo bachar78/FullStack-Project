@@ -30,8 +30,12 @@ public class CustomerJDBCDateAccessService implements CustomerDao {
 
     @Override
     public Optional<Customer> selectCustomerById(Integer id) {
-
-        return Optional.empty();
+        var sql = """
+                SELECT id, name, email, age
+                FROM customer
+                WHERE id = ?
+                """;
+        return jdbcTemplate.query(sql, customerRowMapper, id).stream().findFirst();
     }
 
     ;
