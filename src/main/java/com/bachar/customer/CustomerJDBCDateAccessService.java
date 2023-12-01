@@ -11,9 +11,11 @@ import java.util.Optional;
 public class CustomerJDBCDateAccessService implements CustomerDao {
 
     final private JdbcTemplate jdbcTemplate;
+    final private CustomerRowMapper customerRowMapper;
 
-    public CustomerJDBCDateAccessService(JdbcTemplate jdbcTemplate) {
+    public CustomerJDBCDateAccessService(JdbcTemplate jdbcTemplate, CustomerRowMapper customerRowMapper) {
         this.jdbcTemplate = jdbcTemplate;
+        this.customerRowMapper = customerRowMapper;
     }
 
 
@@ -23,24 +25,16 @@ public class CustomerJDBCDateAccessService implements CustomerDao {
                 SELECT id, name, email, age
                 FROM customer
                 """;
-        //rs = result set
-        RowMapper<Customer> customerRowMapper = (rs, rowNum) -> {
-            Customer customer = new Customer(
-                    rs.getLong("id"),
-                    rs.getString("name"),
-                    rs.getString("email"),
-                    rs.getInt("age")
-            );
-            return customer;
-        };
-        List<Customer> customers = jdbcTemplate.query(sql, customerRowMapper);
-        return customers;
+        return jdbcTemplate.query(sql, customerRowMapper);
     }
 
     @Override
     public Optional<Customer> selectCustomerById(Integer id) {
+
         return Optional.empty();
     }
+
+    ;
 
     @Override
     public void insertCustomer(Customer customer) {
