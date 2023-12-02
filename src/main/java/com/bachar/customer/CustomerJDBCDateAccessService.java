@@ -1,7 +1,6 @@
 package com.bachar.customer;
 
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -38,8 +37,6 @@ public class CustomerJDBCDateAccessService implements CustomerDao {
         return jdbcTemplate.query(sql, customerRowMapper, id).stream().findFirst();
     }
 
-    ;
-
     @Override
     public void insertCustomer(Customer customer) {
         var sql = """
@@ -55,21 +52,54 @@ public class CustomerJDBCDateAccessService implements CustomerDao {
 
     @Override
     public boolean existsPersonWithEmail(String email) {
-        return false;
+        var sql = """
+                SELECT count(id)
+                FROM customer
+                WHERE email = ?
+                """;
+
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, email);
+        return count != null && count > 0;
     }
 
     @Override
     public boolean existPersonWithId(Integer customerId) {
-        return false;
+        var sql = """
+                SELECT count(id)
+                FROM customer
+                WHERE id = ?
+                """;
+
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, customerId);
+        return count != null && count > 0;
     }
 
     @Override
     public void deleteCustomer(Integer customerId) {
-
+    var sql = """
+            DELETE
+            FROM customer
+            WHERE id = ?
+            """;
+    jdbcTemplate.update(sql, customerId);
     }
 
     @Override
     public void updateCustomer(Customer update) {
-
+        if(update.getName() != null) {
+            String sql = "UPDATE customer SET name = ? WHERE id = ?";
+            int updateName = jdbcTemplate.update(sql, update.getName(), update.getId());
+            System.out.println("Update customer name result = " + updateName);
+        }
+        if(update.getEmail() != null) {
+            String sql = "UPDATE customer SET email = ? WHERE id = ?";
+            int updateEmail = jdbcTemplate.update(sql, update.getEmail(), update.getId());
+            System.out.println("Update customer email result = " + updateEmail );
+        }
+        if(update.getAge() != null) {
+            String sql = "UPDATE customer SET age = ? WHERE id = ?";
+            int updateAge = jdbcTemplate.update(sql, update.getAge(), update.getId());
+            System.out.println("Update customer name result = " + updateAge);
+        }
     }
 }
