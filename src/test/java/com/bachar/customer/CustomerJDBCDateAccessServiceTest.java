@@ -37,6 +37,7 @@ class CustomerJDBCDateAccessServiceTest extends AbstractTestcontainer {
         System.out.println(customer.toString());
         //Then
         assertThat(customers.size() != 0).isTrue();
+        assertThat(customers.isEmpty()).isFalse();
     }
 
     @Test
