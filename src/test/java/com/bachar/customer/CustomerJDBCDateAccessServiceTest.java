@@ -1,8 +1,6 @@
 package com.bachar.customer;
 
 import com.bachar.AbstractTestcontainer;
-import com.github.javafaker.Faker;
-import org.checkerframework.checker.units.qual.C;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -58,15 +57,15 @@ class CustomerJDBCDateAccessServiceTest extends AbstractTestcontainer {
                 .findFirst().orElseThrow();
 
         //When
-        Customer actual = underTest.selectCustomerById(id).orElseThrow();
+        Optional<Customer> actual = underTest.selectCustomerById(id);
 
         //Then
-        assertThat(actual).isNotNull().satisfies(c -> {
-            c.getId().equals(id);
-            c.getEmail().equals(customerEmail);
-            c.getName().equals(customer.getName());
-            c.getAge().equals(customer.getAge());
-        });
+        assertThat(actual).isPresent().hasValueSatisfying(c -> {
+                assertThat(c.getName()).isEqualTo(customer.getName());
+                assertThat(c.getEmail()).isEqualTo(customer.getEmail());
+                assertThat(c.getAge()).isEqualTo(customer.getAge());
+                }
+        );
     }
 
     @Test
@@ -79,8 +78,16 @@ class CustomerJDBCDateAccessServiceTest extends AbstractTestcontainer {
         );
         //When
         underTest.insertCustomer(newCustomer);
+        Long id = underTest.selectAllCustomers().stream()
+                .filter(c -> c.getEmail().equals(newCustomer.getEmail()))
+                .findFirst()
+                .map(c -> c.getId()).orElseThrow();
+        boolean existPersonByEmail = underTest.existsPersonWithEmail(newCustomer.getEmail());
+        boolean existPersonById = underTest.existPersonWithId(id);
 
         //Then
+        assertThat(existPersonByEmail).isTrue();
+        assertThat(existPersonById).isTrue();
     }
 
     @Test
@@ -115,20 +122,56 @@ class CustomerJDBCDateAccessServiceTest extends AbstractTestcontainer {
     }
 
     @Test
+    void existPersonWithInvalidId() {
+        //Given
+        Long id = (long) -1;
+        //Then
+        assertThat(underTest.existPersonWithId(id)).isFalse();
+    }
+
+    @Test
     void deleteCustomer() {
         //Given
+        Customer customer = new Customer(
+                FAKER.name().fullName(),
+                FAKER.internet().emailAddress() + UUID.randomUUID(),
+                45
+        );
+        //When
+        underTest.insertCustomer(customer);
+        Long id = underTest.selectAllCustomers().stream().filter(customer1 -> customer1.getEmail().equals(customer.getEmail()))
+                .map(customer1 -> customer1.getId()).findFirst().orElseThrow();
 
         //When
+        underTest.deleteCustomer(id);
+        Optional<Customer> actual = underTest.selectCustomerById(id);
 
         //Then
+        assertThat(actual).isNotPresent();
     }
 
     @Test
     void updateCustomer() {
         //Given
-
+        Customer customer = new Customer(
+                FAKER.name().fullName(),
+                FAKER.internet().emailAddress() + UUID.randomUUID(),
+                45
+        );
+        underTest.insertCustomer(customer);
+        Long id = underTest.selectAllCustomers().stream().filter(customer1 -> customer1.getEmail().equals(customer.getEmail()))
+                .map(customer1 -> customer1.getId()).findFirst().orElseThrow();
+        customer.setName("Bachar Daowd");
+        customer.setEmail("bachar.daowd@gmail.com");
         //When
-
+        underTest.updateCustomer(customer);
+        Optional<Customer> actual = underTest.selectCustomerById(id);
         //Then
+        assertThat(actual).isPresent().hasValueSatisfying(c -> {
+            assertThat(c.getEmail()).isNotEqualTo(customer.getEmail());
+            assertThat(c.getName()).isNotEqualTo(customer.getName());
+            assertThat(c.getAge()).isEqualTo(customer.getAge());
+        });
+
     }
 }
