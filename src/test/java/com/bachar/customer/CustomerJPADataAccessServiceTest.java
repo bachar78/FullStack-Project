@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 
 class CustomerJPADataAccessServiceTest {
 
@@ -28,20 +29,20 @@ class CustomerJPADataAccessServiceTest {
 
     @Test
     void selectAllCustomers() {
-        //Given
-
         //When
-
+        underTest.selectAllCustomers();
         //Then
+        verify(customerRepository).findAll();
     }
 
     @Test
     void selectCustomerById() {
         //Given
-
+        Long id = 1L;
         //When
-
+        underTest.selectCustomerById(id);
         //Then
+        verify(customerRepository).findById(id);
     }
 
     @Test
