@@ -14,8 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.refEq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CustomerServiceTest {
@@ -91,23 +90,99 @@ class CustomerServiceTest {
         Assertions.assertThatThrownBy(() -> underTest.addCustomer(request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage("Email already taken");
+        verify(customerDao, never()).insertCustomer(any());
     }
 
     @Test
     void deleteCustomer() {
         //Given
-
+        Long id = 1L;
+        when(customerDao.existPersonWithId(id)).thenReturn(true);
         //When
-
+        underTest.deleteCustomer(id);
         //Then
+        verify(customerDao).deleteCustomer(id);
     }
 
     @Test
-    void updateCustomer() {
+    void deleteCustomerNotPossible() {
         //Given
-
+        Long id = 1L;
+        when(customerDao.existPersonWithId(id)).thenReturn(false);
         //When
-
         //Then
+        Assertions.assertThatThrownBy(() -> underTest.deleteCustomer(id))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Customer with id %d is not found".formatted(id));
+        verify(customerDao, never()).deleteCustomer(id);
     }
+
+    @Test
+    void updateAllCustomerProperties() {
+        //Given
+        Long id = 1L;
+        Customer customer = new Customer(id, "Bachar Daowd", "bachar@example.com", 45);
+        Mockito.when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+        CustomerUpdateRequest updateRequest = CustomerUpdateRequest.builder()
+                .name("Samer Daowd").email("samer@example.com").age(42).build();
+        Mockito.when(customerDao.existsPersonWithEmail(updateRequest.email())).thenReturn(false);
+        //When
+        underTest.updateCustomer(id, updateRequest);
+        ArgumentCaptor<Customer> customerArgumentCaptor = ArgumentCaptor.forClass(Customer.class);
+        //Then
+        verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
+        Customer updatedCustomer = customerArgumentCaptor.getValue();
+        Assertions.assertThat(updatedCustomer.getName()).isEqualTo(updateRequest.name());
+        Assertions.assertThat(updatedCustomer.getName()).isEqualTo(customer.getName());
+        Assertions.assertThat(updatedCustomer.getEmail()).isEqualTo(updateRequest.email());
+        Assertions.assertThat(updatedCustomer.getEmail()).isEqualTo(customer.getEmail());
+        Assertions.assertThat(updatedCustomer.getAge()).isEqualTo(updateRequest.age());
+        Assertions.assertThat(updatedCustomer.getAge()).isEqualTo(customer.getAge());
+
+    }
+
+    @Test
+    void updateOnlyCustomerName() {
+        //Given
+        Long id = 1L;
+        Customer customer = new Customer(id, "Bachar Daowd", "bachar@example.com", 45);
+        Mockito.when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+        CustomerUpdateRequest updateRequest = CustomerUpdateRequest.builder()
+                .name("Samer Daowd").build();
+        //When
+        underTest.updateCustomer(id, updateRequest);
+        ArgumentCaptor<Customer> customerArgumentCaptor = ArgumentCaptor.forClass(Customer.class);
+        //Then
+        verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
+        Customer updatedCustomer = customerArgumentCaptor.getValue();
+        Assertions.assertThat(updatedCustomer.getName()).isEqualTo(updateRequest.name());
+        Assertions.assertThat(updatedCustomer.getName()).isEqualTo(customer.getName());
+        Assertions.assertThat(updatedCustomer.getEmail()).isEqualTo(customer.getEmail());
+        Assertions.assertThat(updatedCustomer.getAge()).isEqualTo(customer.getAge());
+    }
+
+    @Test
+    void updateOnlyCustomerEmail() {
+        //Given
+        Long id = 1L;
+        Customer customer = new Customer(id, "Bachar Daowd", "bachar@example.com", 45);
+        Mockito.when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+        String newEmail = "samer@example.com";
+        CustomerUpdateRequest updateRequest = CustomerUpdateRequest.builder()
+                .email(newEmail).build();
+        //When
+        underTest.updateCustomer(id, updateRequest);
+//        when(customerDao.existsPersonWithEmail(newEmail)).thenReturn(false);
+        ArgumentCaptor<Customer> customerArgumentCaptor = ArgumentCaptor.forClass(Customer.class);
+        //Then
+        verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
+        Customer updatedCustomer = customerArgumentCaptor.getValue();
+        Assertions.assertThat(updatedCustomer.getEmail()).isEqualTo(updateRequest.email());
+        Assertions.assertThat(updatedCustomer.getEmail()).isEqualTo(customer.getEmail());
+        Assertions.assertThat(updatedCustomer.getName()).isEqualTo(customer.getName());
+        Assertions.assertThat(updatedCustomer.getAge()).isEqualTo(customer.getAge());
+    }
+
+
+
 }
