@@ -1,5 +1,6 @@
 package com.bachar.customer;
 
+import com.bachar.exception.DuplicateResourceException;
 import com.bachar.exception.ResourceNotFoundException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,9 +75,22 @@ class CustomerServiceTest {
         verify(customerDao).insertCustomer(c.capture());
 
         Customer value = c.getValue();
+        Assertions.assertThat(value.getId()).isEqualTo(null);
         Assertions.assertThat(value.getName()).isEqualTo("Bachar Daowd");
         Assertions.assertThat(value.getEmail()).isEqualTo("bachar@example.com");
         Assertions.assertThat(value.getAge()).isEqualTo(45);
+    }
+
+    @Test
+    void addCustomerFailedEmailAlreadyExist() {
+        //Given
+        String email = "bachar@example.com";
+        when(customerDao.existsPersonWithEmail(email)).thenReturn(true);
+        CustomerRegisterRequest request = new CustomerRegisterRequest("Bachar Daowd", "bachar@example.com", 45);
+        //Then
+        Assertions.assertThatThrownBy(() -> underTest.addCustomer(request))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessage("Email already taken");
     }
 
     @Test
