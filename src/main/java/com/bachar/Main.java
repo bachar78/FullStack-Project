@@ -35,4 +35,10 @@ public class Main {
         };
     }
 
+//    @Bean
+//    public String deleteAllCustomers(CustomerRepository customerRepository) {
+//        customerRepository.deleteAll();
+//        return "done";
+//    }
+
 }
