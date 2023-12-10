@@ -1,6 +1,7 @@
 package com.bachar.customer;
 
 import com.bachar.exception.DuplicateResourceException;
+import com.bachar.exception.RequestValidationException;
 import com.bachar.exception.ResourceNotFoundException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,10 +11,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -183,6 +181,51 @@ class CustomerServiceTest {
         Assertions.assertThat(updatedCustomer.getAge()).isEqualTo(customer.getAge());
     }
 
+    @Test
+    void updateOnlyCustomerAge() {
+        //Given
+        Long id = 1L;
+        Customer customer = new Customer(id, "Bachar Daowd", "bachar@example.com", 45);
+        Mockito.when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+        int updatedAge = 42;
+        CustomerUpdateRequest updateRequest = CustomerUpdateRequest.builder()
+                .age(updatedAge).build();
+        //When
+        underTest.updateCustomer(id, updateRequest);
+        ArgumentCaptor<Customer> customerArgumentCaptor = ArgumentCaptor.forClass(Customer.class);
+        //Then
+        verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
+        Customer updatedCustomer = customerArgumentCaptor.getValue();
+        Assertions.assertThat(updatedCustomer.getEmail()).isEqualTo(customer.getEmail());
+        Assertions.assertThat(updatedCustomer.getName()).isEqualTo(customer.getName());
+        Assertions.assertThat(updatedCustomer.getAge()).isEqualTo(updateRequest.age());
+        Assertions.assertThat(updatedCustomer.getAge()).isEqualTo(customer.getAge());
+    }
+
+    @Test
+    void CanNotUpdateCustomerEmail() {
+        //Given
+        Long id = 1L;
+        Customer customer = new Customer(id, "Bachar Daowd", "bachar@example.com", 45);
+        Mockito.when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+        String newEmail = "samer@example.com";
+        CustomerUpdateRequest updateRequest = CustomerUpdateRequest.builder()
+                .email(newEmail).build();
+        when(customerDao.existsPersonWithEmail(newEmail)).thenReturn(true);
+        Assertions.assertThatThrownBy(() -> underTest.updateCustomer(id, updateRequest)).isInstanceOf(DuplicateResourceException.class).hasMessage("Email already taken");
+        verify(customerDao, never()).updateCustomer(any());
+    }
+
+    @Test
+    void CanNotUpdateCustomerWhenNoFieldProvidedToUpdate() {
+        //Given
+        Long id = 1L;
+        Customer customer = new Customer(id, "Bachar Daowd", "bachar@example.com", 45);
+        Mockito.when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+        CustomerUpdateRequest updateRequest = CustomerUpdateRequest.builder().build();
+        Assertions.assertThatThrownBy(() -> underTest.updateCustomer(id, updateRequest)).isInstanceOf(RequestValidationException.class).hasMessage("no data changes found");
+        verify(customerDao, never()).updateCustomer(any());
+    }
 
 
 }
